@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자 선택 애플리케이션</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+        .page {
+            display: none;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #page1 {
+            display: flex;
+        }
+        .question {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+        }
+        .option {
+            cursor: pointer;
+            text-align: center;
+        }
+        .character {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        #selectedOption {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        #selectedCharacter {
+            width: 200px;
+            height: 200px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #farm {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            margin-bottom: 20px;
+            background: url('./img/grass.png');
+            background-size: 40px;
+            border: 20px solid transparent;
+            border-image: url('data:image/svg+xml;charset=utf-8,%3Csvg width%3D%2224%22 height%3D%2224%22 viewBox%3D%220 0 24 24%22 fill%3D%22none%22 xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath fill%3D%22%23804000%22 d%3D%22M0 0h4v24H0zM20 0h4v24h-4z%22%2F%3E%3Cpath fill%3D%22%23804000%22 d%3D%22M0 0h24v4H0zM0 20h24v4H0z%22%2F%3E%3C%2Fsvg%3E') 25% / 1 / 0 repeat;
+        }
+        .movingCharacter {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            transition: all 0.5s ease-in-out;
+        }
+        #restartButton {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #restartButton:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="page1" class="page">
+        <div class="question">당신은 어디에 투자하실겁니까?</div>
+        <div class="options" id="optionsContainer"></div>
+    </div>
+
+    <div id="page2" class="page">
+        <div id="selectedOption"></div>
+        <img id="selectedCharacter" src="" alt="선택된 캐릭터">
+    </div>
+
+    <div id="page3" class="page">
+        <div id="farm"></div>
+        <button id="restartButton">처음으로 돌아가기</button>
+    </div>
+
+    <script>
+        const characterImages = {
+            A: "./img/character_gold.png",
+            B: "./img/character_stock.png",
+            C: "./img/character_house.png",
+            D: "./img/character_keep.png"
+        };
+
+        const investmentOptions = [
+            { key: 'A', text: '금' },
+            { key: 'B', text: '주식' },
+            { key: 'C', text: '부동산' },
+            { key: 'D', text: '예적금' }
+        ];
+
+        let selectedOptions = [];
+        const pages = document.querySelectorAll('.page');
+
+        console.log('애플리케이션 초기화 완료');
+
+        function initializeOptions() {
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            investmentOptions.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.dataset.option = option.key;
+                optionElement.innerHTML = `
+                    <img src="${characterImages[option.key]}" alt="${option.text}" class="character">
+                    <div>${option.key}. ${option.text}</div>
+                `;
+                optionElement.addEventListener('click', () => selectOption(option.key));
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        function selectOption(optionKey) {
+            console.log(`선택된 옵션: ${optionKey}`);
+            selectedOptions.push(optionKey);
+            showPage(2);
+            updatePage2(optionKey);
+        }
+
+        document.getElementById('page2').addEventListener('click', () => {
+            console.log('페이지 2에서 3으로 이동');
+            showPage(3);
+            updateFarm();
+        });
+
+        document.getElementById('restartButton').addEventListener('click', () => {
+            console.log('첫 페이지로 돌아가기');
+            showPage(1);
+        });
+
+        function showPage(pageNumber) {
+            console.log(`페이지 ${pageNumber} 표시`);
+            pages.forEach((page, index) => {
+                page.style.display = index + 1 === pageNumber ? 'flex' : 'none';
+            });
+        }
+
+        function updatePage2(optionKey) {
+            console.log('페이지 2 업데이트');
+            const option = investmentOptions.find(opt => opt.key === optionKey);
+            document.getElementById('selectedOption').textContent = `${option.key}. ${option.text}`;
+            document.getElementById('selectedCharacter').src = characterImages[optionKey];
+        }
+
+        function updateFarm() {
+            console.log('농장 업데이트');
+            const farm = document.getElementById('farm');
+            farm.innerHTML = '';
+            selectedOptions.forEach((optionKey, index) => {
+                const character = document.createElement('img');
+                character.src = characterImages[optionKey];
+                character.className = 'movingCharacter';
+                character.style.left = `${Math.random() * (farm.clientWidth - 70)}px`;
+                character.style.top = `${Math.random() * (farm.clientHeight - 70)}px`;
+                farm.appendChild(character);
+                moveCharacter(character, index);
+            });
+        }
+
+        function moveCharacter(character, delay) {
+            const farm = document.getElementById('farm');
+            
+            function move() {
+                const currentX = parseFloat(character.style.left);
+                const currentY = parseFloat(character.style.top);
+                const maxX = farm.clientWidth - 70;
+                const maxY = farm.clientHeight - 70;
+
+                const newX = Math.max(20, Math.min(maxX, currentX + (Math.random() - 0.5) * 40));
+                const newY = Math.max(20, Math.min(maxY, currentY + (Math.random() - 0.5) * 40));
+
+                character.style.left = `${newX}px`;
+                character.style.top = `${newY}px`;
+
+                console.log(`캐릭터 이동: (${newX.toFixed(2)}, ${newY.toFixed(2)})`);
+
+                setTimeout(() => {
+                    setTimeout(move, (Math.random() * 1000) + 1000);
+                }, 500);
+            }
+
+            setTimeout(move, delay * 500);
+        }
+
+        initializeOptions();
+        console.log('모든 스크립트 로드 완료');
+    </script>
+</body>
+</html>
